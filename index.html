@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Videowall</title>
+    <script src="resources/jquery-3.1.0.min.js"></script>
+    
+    <script type="text/javascript">
+        
+        var tiebreakSelect1 = '<select id="p1Points" name="p1Points" size="5"><option value="00" selected>00</option><option value="15" >15</option><option value="30" >30</option><option value="40" >40</option><option value="AD" >AD</option></select>';
+        
+        var tiebreakSelect2 = '<select id="p2Points" name="p2Points" size="5"><option value="00" selected>00</option><option value="15" >15</option><option value="30" >30</option><option value="40" >40</option><option value="AD" >AD</option></select>';
+
+        var tiebreakNumbers1 = '<input type="number" id="p1Points" name="p1Points" min="0" val="0" value="0" />';
+        var tiebreakNumbers2 = '<input type="number" id="p2Points" name="p2Points" min="0" val="0" value="0" />';
+        
+
+        
+        function pad (str, max) {
+  str = str.toString();
+  return str.length < max ? pad("0" + str, max) : str;
+}
+        
+        var time = 0;
+        var minutes = 0;
+        var hours = 0;
+
+        function updateClocks() {
+            var min = pad(minutes, 2);
+            var hr = pad(hours, 2);
+            var sec = pad(time, 2);
+            $('#minutes').text(min);
+            $('#hour').text(hr);
+            $('#s').val(sec);
+            $('#m').val(min);
+            $('#h').val(hr);
+        }
+        
+        $(document).ready(function(){
+                       console.log('Javascript inicializado');
+
+            
+        var output = $('minutes');
+        var isPaused = true;
+
+        
+        var t = window.setInterval(function() {
+            if(!isPaused) {
+                time++;
+                $('#seconds').css('visibility', $('#seconds').css('visibility') == 'hidden' ? 'visible' : 'hidden');
+                output.text("Seconds: " + time);
+                if (time>59) {
+                    minutes++;
+                    time = 0;
+                    if (minutes>59) {
+                        minutes = 0;
+                        hours++;
+                    }
+                }
+                updateClocks();
+            }
+        }, 1000);
+            
+            
+            $('#start').on('click', function(e) {
+                e.preventDefault();
+                isPaused = false;
+            });
+
+            $('#stop').on('click', function(e) {
+                e.preventDefault();
+                isPaused = true;
+            });
+            
+            $('#reset').on('click', function(e) {
+                e.preventDefault();
+                isPaused = true;
+                time = hours = minutes = 0;
+                updateClocks(time, minutes, hours);
+            });
+            
+            $('#setTime').on('click', function(){
+                time = $('#s').val();
+                minutes = $('#m').val();
+                hours = $('#h').val();
+                updateClocks();
+            });
+            
+            // PLAYERS
+            
+            $('#setPlayers').on('click', function() {
+                var p1Firstname = $('#p1first').val();
+                var p2Firstname = $('#p2first').val();
+                var p1Lastname = $('#p1').val();
+                var p2Lastname = $('#p2').val();
+                
+                var p1Fullname = p1Firstname + ' ' + p1Lastname;
+                var p2Fullname = p2Firstname + ' ' + p2Lastname;
+                
+                $('.p1name').text(p1Lastname);
+                $('.p2name').text(p2Lastname);
+                $('#fullname1').text(p1Fullname);
+                $('#fullname2').text(p2Fullname);
+            });
+            
+            // SERVE
+            
+            $('input[type=radio][name=serve]').change(function() {
+                if (this.value == '1') {
+                $('#serveBullet').css('top', '37px');
+                }
+                else if (this.value == '2') {
+                    $('#serveBullet').css('top', '69px');
+                }
+            });
+            
+            // SETS
+            
+            function p1change(val) {
+                $('#games1').text(val);
+                $('#p1Points, #p2Points').val('00');
+                $('#p1Points, #p2Points').trigger('change');
+            }
+            function p2change(val) {
+                $('#games2').text(val);
+                $('#p1Points, #p2Points').val('00');
+                $('#p1Points, #p2Points').trigger('change');
+            }
+            
+            $('#set11').on('change', function() {
+                val = $(this).val();
+                $('#set_1_1').text(val);
+                p1change(val);
+            });
+            $('#set12').on('change', function() {
+                val = $(this).val();
+                $('#set_1_2').text(val);
+                p1change(val);
+            });
+            $('#set13').on('change', function() {
+                val = $(this).val();
+                $('#set_1_3').text(val);
+                p1change(val);
+            });
+            $('#set21').on('change', function() {
+                val = $(this).val();
+                $('#set_2_1').text(val);
+                p2change(val);
+            });
+            $('#set22').on('change', function() {
+                val = $(this).val();
+                $('#set_2_2').text(val);
+                p2change(val);
+            });
+            $('#set23').on('change', function() {
+                val = $(this).val();
+                $('#set_2_3').text(val);
+                p2change(val);
+            });
+            
+            // GAMES 
+            
+            $('#p1Game').on('change', function() {
+                val = $(this).val();
+                p1change(val);
+            });
+            $('#p2Game').on('change', function() {
+                val = $(this).val();
+                p2change(val); 
+                ;
+            });
+            
+            // POINTS
+            $('#p1Points').on('change', function(){
+                $('#points1').text($(this).val());
+            });
+            $('#p2Points').on('change', function(){
+                $('#points2').text($(this).val());
+            });
+            
+            
+            //Función que vincula el evento "change" al html creado
+            function changePoints(player) {
+                // Player debe ser 1 o 2
+                var forElement = '#p'+player+'Points';
+                var marcador = '#points'+player;
+                $(forElement).on('change', function(){
+                    $(marcador).text($(this).val());
+                });
+                
+                $(marcador).text($(forElement).val());
+            }
+            
+            // POINTS TIE BREAK
+            
+            $('#tiebreak').on('change', function(){
+                console.log('changed');
+               if ($(this).is(':checked')) {
+                   console.log('tiebreak!!');
+                   
+                   $('#p1Points').replaceWith(tiebreakNumbers1);
+                   $('#p2Points').replaceWith(tiebreakNumbers2);
+                   
+                } else {
+                   $('#p1Points').replaceWith(tiebreakSelect1);
+                   $('#p2Points').replaceWith(tiebreakSelect2);
+                }
+                
+                // Volvemos a vincular el evento change a los elementos recien creados
+                changePoints(1);
+                changePoints(2);
+            });
+            
+            
+            // FONTS PROBLEMS
+            
+            $('#pcchrome').on('change', function(){
+                console.log('changed');
+               if ($(this).is(':checked')) {
+                   console.log('checked!!');
+                   $('.dot').addClass('fix');
+                } else {
+                    $('.dot').removeClass('fix');
+            } 
+            });
+            
+            // CORTINILLA
+            
+            $('#cortinillacb').on('change', function(){
+                console.log('changed');
+               if ($(this).is(':checked')) {
+                   console.log('visible!!');
+                   $('#cortinilla, #rnsc, #brand').show('slow');
+                } else {
+                    $('#cortinilla').hide('slow');
+            } 
+            });
+            
+            function hideRNSC() {
+                $('#rnsc').hide('slow');
+            }
+            function hideBrand() {
+                $('#brand').hide('slow');
+            }
+            
+            $('#startGame').on('click', function(){
+                console.log('LET\'S START');
+                $('#cortinilla, #rnsc, #brand').show();
+                timeoutrn = window.setTimeout(hideRNSC, 10000);
+                timeoutbr = window.setTimeout(hideBrand, 15000);
+                
+                var cd = 15
+                
+            });
+            
+            $('#transformx, #transformy').on('change', function(){
+                var x = $('#transformx').val();
+                var y = $('#transformy').val();
+                console.log(x+', '+ y);
+                
+                $('.transform').css('transform', 'scale('+x+','+y+')');
+            });
+            
+        });
+    </script>
+    
+    <style>
+        
+        @font-face {
+            font-family: 'dot';
+            src:    url(resources/dot.woff) format('woff'); /* Pretty Modern Browsers */
+                    /*url(resources/dot.ttf)  format('truetype');*/ /* Safari, Android, iOS */
+            }
+        
+        body {
+            margin: 0;
+            padding: 0;
+                        background-color: #2c3c2f;
+            color: white;
+            font-family: Verdana, Arial, sans-serif;
+            text-transform: uppercase;
+            font-weight: bolder
+            -webkit-font-smoothing: none;
+        }
+        
+        input {
+            font-size: 16px;
+            font-family: Verdana, Arial, sans-serif;
+            font-weight: bold;
+            margin-bottom: 7px
+        }
+        
+        input[type=text] {
+            padding: 5px;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        
+        #marcador {
+            display: block;
+            position: absolute;
+            cursor: none;
+            width: 256px;
+            height: 384px;
+            background-image: url(resources/background.png);
+            background-position: top left;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        #marcador > div {
+            display: block;
+            position: absolute;
+            text-align: left;
+            cursor: none;
+        }
+        
+        .dot {
+            text-align: center;
+            font-size: 42px;
+            font-family: 'dot', Fallback, sans-serif;
+            transition: all .5s;
+        }
+        
+        #serveBullet {
+            display: block;
+            position: absolute;
+            left: 6px;
+            top: 37px;
+            width: 19px;
+            height: 19px;
+            transition: all .5s;
+        }
+        
+        #games1 {
+            top: 162px;
+            left: 48px;
+            width: 78px;
+            text-align: center !important;
+        }
+        #points1 {
+            top: 162px;
+            left: 142px;
+            width: 78px;
+            text-align: center !important;
+        }
+        #games2 {
+            top: 255px;
+            left: 48px;
+            width: 78px;
+            text-align: center !important;
+        }
+        #points2 {
+            top: 255px;
+            left: 142px;
+            width: 78px;
+            text-align: center !important;
+        }
+        
+        
+        #name1 {
+            top: 37px;
+            left: 37px;
+            font-size: 14px;
+        }
+        #name2 {
+            top: 68px;
+            left: 37px;
+            font-size: 14px;
+        }
+        #fullname1 {
+            top: 115px;
+            left: 30px;
+        }
+        #fullname2 {
+            top: 209px;
+            left: 30px;
+        }
+        #set_1_1 {
+            top: 30px;
+            left: 127px;
+        }
+        #set_1_2 {
+            top: 30px;
+            left: 159px;
+        }
+        #set_1_3 {
+            top: 30px;
+            left: 191px;
+        }
+        #set_2_1 {
+            top: 61px;
+            left: 127px;
+        }
+        #set_2_2 {
+            top: 61px;
+            left: 159px;
+        }
+        #set_2_3 {
+            top: 61px;
+            left: 191px;
+        }
+        #time {
+            text-align: center !important;
+            width: 150px;
+            top: 333px;
+            left: 52px;
+            font-size: 25px;
+        }
+        
+        .set {
+            font-size: 26px;
+        }
+        
+        #controls {
+            display: block;
+            position: absolute;
+            left: 320px;
+            top: 20px;
+            width: 700px;
+        }
+        
+        #controls > div {
+            display: block;
+            position: relative;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        
+        #controls > div.halfmodule {
+            width: 45%;
+            float: left;
+        }
+        
+        #controls > div.quartermodule {
+            width: 22%;
+            float: left;
+        }
+        
+        #players input[type=text] {
+            width: 90px;
+        }
+        input[type=radio], button {
+            cursor: pointer;
+        }
+        
+        button {
+            font-size: 16px;
+            padding: 7px;
+        }
+        
+        input[type=number] {
+            width: 48px;
+            height: 32px;
+            font-size: 26px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+        
+        #h, #m, #s {
+            font-size: 20px;
+        }
+        
+        .clearboth {
+            display: none;
+        }
+        
+        select {
+            font-size: 16px;
+            display: inline-block;
+            padding: 5px 10px;
+            margin-right: 20px;
+        }
+        
+        #points {vertical-align: top;}
+        #points span {
+            display: inline-block;
+            height: 50px;
+        }
+        
+        #timer {
+            position: absolute !important;
+            left: -300px;
+            top: 400px;
+        }
+        
+        .fix {
+            margin-top: -33px;
+        }
+        
+        #time.fix {
+            margin-top: -20px;
+        }
+        
+        #games {display: none !important;}
+        #tiebreak {margin-top: 20px;}
+        
+        #cortinilla, #cortinilla > div {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 256px;
+            height: 384px;
+        }
+        
+        #rnsc {
+            z-index: 2;
+        }
+        
+        #brand {
+            z-index: 1
+        }
+        
+        #black {
+            background-color: black;
+            z-index: 3;
+            display: none;
+        }
+        
+        .transform {
+            transform: scale(1, 1);
+            transform-origin: top left;
+        }
+        
+
+        
+    </style>
+</head>
+
+<body>
+    <div id="marcador" class="transform">
+        <!-- Nombres y números simulados para mockup-->
+        <div id="serveBullet"><img src="resources/serve.png" alt="bullet"/></div>
+        <div id="name1" class="p1name playername">NAD/WIL</div>
+        <div id="name2" class="p2name playername">MOY/M<span style="text-transform:lowercase;">c</span>E</div>
+        <div id="set_1_1" class="set">0</div>
+        <div id="set_1_2" class="set"></div>
+        <div id="set_1_3" class="set"></div>
+        <div id="set_2_1" class="set">0</div>
+        <div id="set_2_2" class="set"></div>
+        <div id="set_2_3" class="set"></div>
+        <div id="fullname1">NADAL & WILANDER</div>
+        <div id="games1" class="dot">0</div>
+        <div id="points1" class="dot">00</div>
+        <div id="fullname2">MOYÀ & M<span style="text-transform:lowercase;">c</span>ENROE</div>
+        <div id="games2" class="dot">0</div>
+        <div id="points2" class="dot">00</div>
+        <div id="time" class="dot"><span id="hour">00</span><span id="seconds">:</span><span id="minutes">00</span></div>
+    </div>
+    
+    <div id="controls">
+        <div id="players">
+            <h1>Jugadors</h1>
+                <span>Player 1 </span><input type="text" name="p1first" id="p1first" tabindex="1" placeholder="Rafel" /><input type="text" name="p1" id="p1" placeholder="Nadal" tabindex="2"  />
+                <input type="radio" name="serve" value="1" checked tabindex="6" > Servei<br />
+                <span>Player 2 </span><input type="text" name="p2first" id="p2first" placeholder="Carles" tabindex="3"  /><input type="text" name="p2" id="p2" placeholder="Moyà" tabindex="4"  />
+                <input type="radio" name="serve" value="2" ><br />
+            <button value="Set" id="setPlayers" tabindex="5" >Establir</button>
+            <div class="clearboth"></div>
+        </div>
+        <hr />
+        <div id="timer">
+            <h1>Rellotge</h1>
+            <button id="start">START</button>
+            <button id="stop">PAUSE</button>
+            <button id="reset">RESET</button><br /><br />
+            <h1>Canviar temps</h1>
+            <input type="number" id="h" val='00' min="0" placeholder="00" />
+            <input type="number" id="m" val='00' min="0" max="59"  placeholder="00" />
+            <input type="number" id="s" val='0' min="0" max="59" placeholder="00" /><br />
+            <button value="Set" id="setTime">Establir</button>
+        </div>
+        <div id="sets" class="halfmodule">
+            <h1>Sets</h1>
+            <div class="p1name playername">NADAL & WILANDER</div>
+            <input type="number" id="set11" min="0" max="7" />
+            <input type="number" id="set12" min="0" max="7" />
+            <input type="number" id="set13" min="0" max="7" /><br />
+            <div class="p2name playername">MOYÀ & MCENROE</div>
+            <input type="number" id="set21" min="0" max="7" />
+            <input type="number" id="set22" min="0" max="7"  />
+            <input type="number" id="set23" min="0" max="7"  /><br />
+            <button value="Set" id="setSets">Establir</button>
+        </div>
+        <div id="games" class="quartermodule">
+            <h1>Games</h1>
+            <div  class="p1name playername">NADAL &<br /> WILANDER</div>
+            <input type="number" id="p1Game" min="0" />
+            <div class="p2name playername">MOYÀ &<br /> MCENROE</div>
+            <input type="number" id="p2Game" min="0" />
+        </div>
+        <div id="points" class="">
+            <h1>Points</h1>
+            <span id="" class="p1name playername">NADAL &<br /> WILANDER</span>
+            <select id="p1Points" name="p1Points" size="5">
+                <option value="00" selected>00</option>
+                <option value="15" >15</option>
+                <option value="30" >30</option>
+                <option value="40" >40</option>
+                <option value="AD" >AD</option>
+            </select>
+            <span id="" class="p2name playername">MOYÀ &<br /> MCENROE</span>
+            <select id="p2Points" name="p2Points" size="5">
+                <option value="00" selected>00</option>
+                <option value="15" >15</option>
+                <option value="30" >30</option>
+                <option value="40" >40</option>
+                <option value="AD" >AD</option>
+            </select> <br />
+            <input type="checkbox" val="true" id="tiebreak" name="tiebreak" /> Tie Break
+        </div>
+        <hr style="width: 100%; clear: both; margin-top: 50px;" />
+        Escala marcador: <input type="text" id="transformx" name="transformx" val="1" placeholder=".5" size=2/>
+         <input type="text" id="transformy" name="transformy" val="1" placeholder=".5" size=2 /><br/>   
+        <input type="checkbox" val="true" id="pcchrome" name="pcchrome" /> Arreglar posicionament fonts <br /><br />
+        <input type="checkbox" val="true" id="cortinillacb" name="cortinilla" checked /> Mostrar/Ocultar marcador<br /><br />
+        <button value="startGame" id="startGame">Iniciar Partit</button>
+    </div>
+    
+    <div id="cortinilla" class="transform">
+        <div id="rnsc"><img src="resources/RNSC.jpg" /></div>
+        <div id="brand"><img src="resources/brand.jpg" /></div>
+    </div>
+    
+</body>
+</html>
+<link rel="stylesheet" href="">
+
