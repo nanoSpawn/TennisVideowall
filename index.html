@@ -225,35 +225,7 @@
             } 
             });
             
-            // CORTINILLA
-            
-            $('#cortinillacb').on('change', function(){
-                console.log('changed');
-               if ($(this).is(':checked')) {
-                   console.log('visible!!');
-                   $('#cortinilla, #rnsc, #brand').show('slow');
-                } else {
-                    $('#cortinilla').hide('slow');
-            } 
-            });
-            
-            function hideRNSC() {
-                $('#rnsc').hide('slow');
-            }
-            function hideBrand() {
-                $('#brand').hide('slow');
-            }
-            
-            $('#startGame').on('click', function(){
-                console.log('LET\'S START');
-                $('#cortinilla, #rnsc, #brand').show();
-                timeoutrn = window.setTimeout(hideRNSC, 10000);
-                timeoutbr = window.setTimeout(hideBrand, 15000);
-                
-                var cd = 15
-                
-            });
-            
+        
             $('#transformx, #transformy').on('change', function(){
                 var x = $('#transformx').val();
                 var y = $('#transformy').val();
@@ -618,15 +590,7 @@
         Escala marcador: <input type="text" id="transformx" name="transformx" val="1" placeholder=".5" size=2/>
          <input type="text" id="transformy" name="transformy" val="1" placeholder=".5" size=2 /><br/>   
         <input type="checkbox" val="true" id="pcchrome" name="pcchrome" /> Arreglar posicionament fonts <br /><br />
-        <input type="checkbox" val="true" id="cortinillacb" name="cortinilla" checked /> Mostrar/Ocultar marcador<br /><br />
-        <button value="startGame" id="startGame">Iniciar Partit</button>
     </div>
-    
-    <div id="cortinilla" class="transform">
-        <div id="rnsc"><img src="resources/RNSC.jpg" /></div>
-        <div id="brand"><img src="resources/brand.jpg" /></div>
-    </div>
-    
 </body>
 </html>
 <link rel="stylesheet" href="">
