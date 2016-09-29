@@ -1,3 +1,12 @@
+<!-- LEGAL DISCLAIMER -->
+<!-- 
+    This page uses jQuery and jQuery Ui libraries, created and maintained by the    
+    jQuery team at http://www.jquery.com. The theme used is the South Street theme
+    for jQuery UI, also made by the jQuery UI team. I do not own these and I use them
+    under the jQuery license cc0 https://tldrlegal.com/license/creative-commons-cc0-1.0-universal
+
+    May this disclaimer serve to acknowledge the fantastic work the jQuery team does.
+-->
 <!DOCTYPE html>
 <html lang="">
 <head>
@@ -5,8 +14,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tennis Videowall</title>
     <script src="resources/jquery-3.1.0.min.js"></script>
+    <script src="resources/jquery-ui.min.js"></script>
+    <link href="resources/jquery-ui.min.css" rel="stylesheet">
+    
     
     <script type="text/javascript">
+        
+        // GLOBAL VARIABLES
         
         var tiebreakSelect1 = '<select id="p1Points" name="p1Points" size="5"><option value="00" selected>00</option><option value="15" >15</option><option value="30" >30</option><option value="40" >40</option><option value="AD" >AD</option></select>';
         
@@ -14,6 +28,137 @@
 
         var tiebreakNumbers1 = '<input type="number" id="p1Points" name="p1Points" min="0" val="0" value="0" />';
         var tiebreakNumbers2 = '<input type="number" id="p2Points" name="p2Points" min="0" val="0" value="0" />';
+        
+        var defaultOptions = '{ "resX": 256, "resY": 384, "scaleX": 1, "scaleY": 1, "chromefix": false }';
+        
+        // localStorage.clear('options'); // Uncomment this to fix problems with broken JSON
+        var defaults = JSON.parse(defaultOptions);
+        var options = defaults;
+        
+        // LOCAL STORAGE
+        
+        
+        // Truly global variables. Ugly but needed.
+        
+        
+        // Reads current saved values and returns a JSON object
+        function readOptions() {
+            o = JSON.parse(localStorage.getItem('options')); // we return a full JSON object
+            return o;
+        }
+        
+        // Saves current values in forms to the web local storage 
+        function saveOptions() {
+            var o = getOptionsFromForm();
+            var j = localStorage.setItem('options', JSON.stringify(o));
+            console.log('Options have been saved');
+        }
+        
+        // Prints given values in the Dialog form from object passed via argument
+        function writeOptions(o) {
+            console.log('Printing out forms... '+ JSON.stringify(o, null, 4));
+            $('#screenX').val(o.resX);
+            $('#screenY').val(o.resY);
+            $('#transformX').val(o.scaleX);
+            $('#transformY').val(o.scaleY);
+            
+            if( o.chromefix == true ) {
+                $('#pcchrome').prop('checked', true);
+            } else {
+                $('#pcchrome').prop('checked', false);
+            }
+            
+            updateVideowall();
+        }
+        
+        // Restore to latest saved options
+        function resetOptions() {
+            o = readOptions();
+            
+            if (o == null) {
+                o = defaults;
+            }
+            writeOptions(o);
+            console.log('Options have been reset');
+        }
+        
+        
+        // Restores to defaults
+        function clearOptions() {
+            localStorage.clear('options');
+            writeOptions(JSON.parse(defaultOptions));
+            console.log('Options have been cleared '+ defaultOptions);
+            
+        };
+        
+        
+        // Get values from the forms and updates the options object
+        function getOptionsFromForm() {
+            
+            o = defaults; // we create a default JSON options object
+            console.log('current form values: '+JSON.stringify(o, null, 4));
+            
+            resX = $('#screenX').val();
+            resY = $('#screenY').val();
+            scaleX = $('#transformX').val();
+            scaleY = $('#transformY').val();
+            
+            if ($('#pcchrome').is(':checked')) {
+                o.chromefix = true;
+            } else {
+                o.chromefix = false;
+            }
+            
+            // If they're empty we will not update
+            
+            if (resX != '' ) {
+                o.resX = resX;
+            }
+            if (resY != '' ) {
+                o.resY = resY;
+            }
+            if (resX != '' ) {
+                o.scaleX = scaleX;
+            }
+            if (resX != '' ) {
+                o.scaleY = scaleY;
+            }
+            
+            console.log(o);
+            return o
+        }
+        
+        function updateFix() {
+             console.log('changed');
+               if ($('#pcchrome').is(':checked')) {
+                   console.log('checked!!');
+                   $('.dot').addClass('fix');
+                } else {
+                    $('.dot').removeClass('fix');
+            } 
+        }
+        
+        function updateScale() {
+                var x = $('#transformX').val();
+                var y = $('#transformY').val();
+                console.log(x+', '+ y);
+                
+                $('.transform').css('transform', 'scale('+x+','+y+')');
+        }
+        
+        function updateResolution() {
+            var w = $('#screenX').val();
+            var h = $('#screenY').val();
+            
+            $('#marcador').width(w).height(h);
+        }
+        
+        // Update videowall when there are changes within the options
+        function updateVideowall() {
+            updateFix();
+            updateScale();
+            updateResolution();
+        }
         
 
         
@@ -37,8 +182,65 @@
             $('#h').val(hr);
         }
         
-        $(document).ready(function(){
-                       console.log('Javascript inicializado');
+    // DOCUMENT READY.
+        
+    $(document).ready(function(){
+        
+        console.log('Javascript inicializado');
+            
+        // LOAD OPTIONS
+        
+        // To save persistent parameters locally. Not on a file, but those will be persistent in the browser.
+        // The vehicle used to save and retrieve them will be JSON.
+        
+        if (localStorage.getItem('options')) {
+            console.log('Previous options loaded succesfully');
+            options = JSON.parse(localStorage.getItem('options'));
+        } else {
+            console.log('no options saved...');
+            localStorage.setItem('options', JSON.stringify(options));
+        }
+        
+        writeOptions(options);
+        
+        console.log('Initial options: '+ JSON.stringify(options, null, 4));
+        
+        $('#dialog').dialog({
+            autoOpen: false,
+            maxWidth: 1200,
+            minWidth: 500,
+            position: {my: 'center center', at: 'center center', of: window},
+            buttons: [
+                {   text: "Ok & save",
+                    click: function() {
+                        o = readOptions();
+                        saveOptions(o);
+                    $( this ).dialog( "close" );
+                    }
+                },
+                {   text: "Clear changes",
+                    click: function() {
+                        clearOptions();
+                    }
+                },
+                {   text: "Undo",
+                    click: function() {
+                        resetOptions();
+                    }
+                }  
+            ]
+        });
+        $( "#dialog" ).on( "dialogclose", function( event, ui ) {
+            $('#openDialog').removeAttr('disabled');
+        } );    
+        
+        
+        if (!$('#dialog').dialog('isOpen')) {
+            $('#openDialog').on('click', function() {
+                $('#dialog').dialog('open');
+                $(this).attr('disabled', 'disabled');
+            });
+        }
 
             
         var output = $('minutes');
@@ -215,23 +417,17 @@
             
             // FONTS PROBLEMS
             
-            $('#pcchrome').on('change', function(){
-                console.log('changed');
-               if ($(this).is(':checked')) {
-                   console.log('checked!!');
-                   $('.dot').addClass('fix');
-                } else {
-                    $('.dot').removeClass('fix');
-            } 
+            $('#pcchrome').change( function(){
+               updateFix();
             });
             
         
-            $('#transformx, #transformy').on('change', function(){
-                var x = $('#transformx').val();
-                var y = $('#transformy').val();
-                console.log(x+', '+ y);
-                
-                $('.transform').css('transform', 'scale('+x+','+y+')');
+            $('#transformX, #transformY').change(function(){
+                updateScale();
+            });
+        
+            $('#screenX, #screenY').change(function(){
+                updateResolution();
             });
             
         });
@@ -248,16 +444,16 @@
         body {
             margin: 0;
             padding: 0;
-                        background-color: #2c3c2f;
-            color: white;
+                        background-color: #dfd9c3;
+            color: #333;
             font-family: Verdana, Arial, sans-serif;
-            text-transform: uppercase;
+            /*text-transform: uppercase;*/
             font-weight: bolder
             -webkit-font-smoothing: none;
         }
         
         input {
-            font-size: 16px;
+            font-size: 14px;
             font-family: Verdana, Arial, sans-serif;
             font-weight: bold;
             margin-bottom: 7px
@@ -266,21 +462,40 @@
         input[type=text] {
             padding: 5px;
         }
+        
+        #dialog input[type=text], #dialog input[type=number] {
+            text-align: center;
+        }
+        
+        #dialog input[type=number] {
+            width: 80px;
+            font-size: 21px;
+        }
         h1 {
             margin: 0 0 10px 0;
             font-size: 20px;
         }
+        #dialog {
+            text-align: center;
+        }
+        
+        #dialog hr {
+            opacity: .3;
+        }
         
         #marcador {
             display: block;
-            position: absolute;
+            position: relative;
+            float: left;
             cursor: none;
             width: 256px;
             height: 384px;
             background-image: url(resources/background.png);
             background-position: top left;
             background-repeat: no-repeat;
-            background-size: contain;
+            background-size: cover;
+            color: white;
+            text-transform: uppercase;
         }
         #marcador > div {
             display: block;
@@ -388,8 +603,10 @@
         
         #controls {
             display: block;
-            position: absolute;
-            left: 320px;
+            position: relative;
+            float: left;
+            clear: right;
+            margin-left: 50px;
             top: 20px;
             width: 700px;
         }
@@ -415,13 +632,12 @@
         #players input[type=text] {
             width: 90px;
         }
-        input[type=radio], button {
+        input[type=radio], button, label {
             cursor: pointer;
         }
         
         button {
-            font-size: 16px;
-            padding: 7px;
+            font-size: 15px !important;
         }
         
         input[type=number] {
@@ -455,9 +671,9 @@
         }
         
         #timer {
-            position: absolute !important;
-            left: -300px;
-            top: 400px;
+            position: relative !important;
+            clear: both;
+            float: left;
         }
         
         .fix {
@@ -532,21 +748,10 @@
                 <input type="radio" name="serve" value="1" checked tabindex="6" > Servei<br />
                 <span>Player 2 </span><input type="text" name="p2first" id="p2first" placeholder="Carles" tabindex="3"  /><input type="text" name="p2" id="p2" placeholder="Moyà" tabindex="4"  />
                 <input type="radio" name="serve" value="2" ><br />
-            <button value="Set" id="setPlayers" tabindex="5" >Establir</button>
+            <button value="Set" id="setPlayers" tabindex="5" >Set</button>
             <div class="clearboth"></div>
         </div>
         <hr />
-        <div id="timer">
-            <h1>Rellotge</h1>
-            <button id="start">START</button>
-            <button id="stop">PAUSE</button>
-            <button id="reset">RESET</button><br /><br />
-            <h1>Canviar temps</h1>
-            <input type="number" id="h" val='00' min="0" placeholder="00" />
-            <input type="number" id="m" val='00' min="0" max="59"  placeholder="00" />
-            <input type="number" id="s" val='0' min="0" max="59" placeholder="00" /><br />
-            <button value="Set" id="setTime">Establir</button>
-        </div>
         <div id="sets" class="halfmodule">
             <h1>Sets</h1>
             <div class="p1name playername">NADAL & WILANDER</div>
@@ -557,7 +762,7 @@
             <input type="number" id="set21" min="0" max="7" />
             <input type="number" id="set22" min="0" max="7"  />
             <input type="number" id="set23" min="0" max="7"  /><br />
-            <button value="Set" id="setSets">Establir</button>
+            <button value="Set" id="setSets" class="ui-button ui-corner-all ui-widget">Set</button>
         </div>
         <div id="games" class="quartermodule">
             <h1>Games</h1>
@@ -584,13 +789,34 @@
                 <option value="40" >40</option>
                 <option value="AD" >AD</option>
             </select> <br />
-            <input type="checkbox" val="true" id="tiebreak" name="tiebreak" /> Tie Break
+            <label><input type="checkbox" val="true" id="tiebreak" name="tiebreak" /> Tie Break</label>
+            
         </div>
         <hr style="width: 100%; clear: both; margin-top: 50px;" />
-        Escala marcador: <input type="text" id="transformx" name="transformx" val="1" placeholder=".5" size=2/>
-         <input type="text" id="transformy" name="transformy" val="1" placeholder=".5" size=2 /><br/>   
-        <input type="checkbox" val="true" id="pcchrome" name="pcchrome" /> Arreglar posicionament fonts <br /><br />
+        <button id="openDialog" name="openDialog" class="ui-button ui-corner-all ui-widget">Options</button>
     </div>
+    
+    <div id="timer">
+            <h1>Rellotge</h1>
+            <button id="start" class="ui-button ui-corner-all ui-widget">START</button>
+            <button id="stop" class="ui-button ui-corner-all ui-widget">PAUSE</button>
+            <button id="reset" class="ui-button ui-corner-all ui-widget">RESET</button><br /><br />
+            <h1>Canviar temps</h1>
+            <input type="number" id="h" val='00' min="0" placeholder="00" />
+            <input type="number" id="m" val='00' min="0" max="59"  placeholder="00" />
+            <input type="number" id="s" val='0' min="0" max="59" placeholder="00" /><br />
+            <button value="Set" id="setTime" class="ui-button ui-corner-all ui-widget">Set</button>
+        </div>
+    
+        <div id="dialog" title="Options">
+            Screen Resolution: 
+            <input type="number" id="screenX" name="screenX" placeholder="256" size=6 disabled />
+            <input type="number" id="screenY" name="screenY" placeholder="384" size=6 disabled />
+            <hr />
+        Scale transform: <input type="number" id="transformX" name="transformX" step=".01" placeholder=".5" size=6/>
+         <input type="number" id="transformY" name="transformY" step=".01" placeholder=".5" size=6 /><br/>   
+            <hr />
+        <label><input type="checkbox" val="true" id="pcchrome" name="pcchrome" /> Fix font positioning </label><br /><br /></div>
 </body>
 </html>
 <link rel="stylesheet" href="">
